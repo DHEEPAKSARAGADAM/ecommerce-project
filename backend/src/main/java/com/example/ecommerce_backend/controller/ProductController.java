@@ -2,6 +2,8 @@ package com.example.ecommerce_backend.controller;
 
 import com.example.ecommerce_backend.entity.Product;
 import com.example.ecommerce_backend.service.ProductService;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,11 @@ public class ProductController {
         logger.info("GET /api/products");
 
         return productService.getAllProducts();
+    }
+
+    @GetMapping("/search")
+    public List<Product> searchProducts(@RequestParam String name) {
+          return productService.searchProducts(name);
     }
 
     @GetMapping("/{id}")

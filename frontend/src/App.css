@@ -437,6 +437,36 @@ button {
   margin: 25px 0;
 }
 
+.search-box {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 30px 20px auto;
+  max-width: 400px;
+}
+
+.search-box input {
+  width: 230px;
+  padding: 9px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: #555;
+}
+
+.search-box button {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 /* MOBILE */
 
 @media (max-width: 750px) {
@@ -465,5 +495,7 @@ button {
   .checkout-layout {
     grid-template-columns: 1fr;
   }
+
+  
 
 }

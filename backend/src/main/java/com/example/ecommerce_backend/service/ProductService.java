@@ -32,6 +32,10 @@ public class ProductService {
         return products;
     }
 
+    public List<Product> searchProducts(String name) {
+       return productRepository.findByNameContainingIgnoreCase(name);
+    }
+
     public Product createProduct(Product product) {
 
         logger.info("Creating product: {}", product.getName());

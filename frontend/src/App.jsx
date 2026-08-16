@@ -8,9 +8,10 @@ function App() {
 
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
-
     return savedCart ? JSON.parse(savedCart) : [];
   });
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [page, setPage] = useState("products");
 
@@ -21,24 +22,17 @@ function App() {
   const [orderSuccess, setOrderSuccess] = useState(null);
 
   const [customerName, setCustomerName] = useState("");
+
   const [phone, setPhone] = useState("");
+
   const [address, setAddress] = useState("");
+
   const [paymentMethod, setPaymentMethod] = useState("UPI");
 
-  useEffect(() => {
 
-    loadProducts();
-
-  }, []);
-
-  useEffect(() => {
-
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(cart)
-    );
-
-  }, [cart]);
+  // ==========================================
+  // LOAD ALL PRODUCTS
+  // ==========================================
 
   const loadProducts = async () => {
 
@@ -53,7 +47,7 @@ function App() {
 
     } catch (error) {
 
-      console.error(error);
+      console.error("Error loading products:", error);
 
       setError("Failed to load products");
 
@@ -63,6 +57,85 @@ function App() {
 
     }
   };
+
+
+  // ==========================================
+  // INITIAL LOAD
+  // ==========================================
+
+  useEffect(() => {
+
+    loadProducts();
+
+  }, []);
+
+
+  // ==========================================
+  // SAVE CART TO LOCAL STORAGE
+  // ==========================================
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      "cart",
+      JSON.stringify(cart)
+    );
+
+  }, [cart]);
+
+
+  // ==========================================
+  // SEARCH PRODUCTS
+  // ==========================================
+
+  const searchProducts = async () => {
+
+    if (searchTerm.trim() === "") {
+
+      loadProducts();
+
+      return;
+    }
+
+    try {
+
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        `http://localhost:8080/api/products/search?name=${encodeURIComponent(searchTerm)}`
+      );
+
+      if (!response.ok) {
+
+        throw new Error("Search failed");
+
+      }
+
+      const data = await response.json();
+
+      setProducts(data);
+
+    } catch (error) {
+
+      console.error(
+        "Error searching products:",
+        error
+      );
+
+      setError("Failed to search products");
+
+    } finally {
+
+      setLoading(false);
+
+    }
+  };
+
+
+  // ==========================================
+  // ADD TO CART
+  // ==========================================
 
   const addToCart = (product) => {
 
@@ -103,6 +176,11 @@ function App() {
     }
   };
 
+
+  // ==========================================
+  // INCREASE QUANTITY
+  // ==========================================
+
   const increaseQuantity = (id) => {
 
     setCart(
@@ -129,6 +207,11 @@ function App() {
     );
   };
 
+
+  // ==========================================
+  // DECREASE QUANTITY
+  // ==========================================
+
   const decreaseQuantity = (id) => {
 
     setCart(
@@ -150,24 +233,47 @@ function App() {
     );
   };
 
+
+  // ==========================================
+  // REMOVE FROM CART
+  // ==========================================
+
   const removeFromCart = (id) => {
 
     setCart(
       cart.filter(item => item.id !== id)
     );
+
   };
 
+
+  // ==========================================
+  // CART COUNT
+  // ==========================================
+
   const cartCount = cart.reduce(
-    (total, item) => total + item.quantity,
+    (total, item) =>
+      total + item.quantity,
     0
   );
+
+
+  // ==========================================
+  // CART TOTAL
+  // ==========================================
 
   const cartTotal = cart.reduce(
     (total, item) =>
       total +
-      Number(item.price) * item.quantity,
+      Number(item.price) *
+      item.quantity,
     0
   );
+
+
+  // ==========================================
+  // GO TO CHECKOUT
+  // ==========================================
 
   const goToCheckout = () => {
 
@@ -179,7 +285,13 @@ function App() {
     }
 
     setPage("checkout");
+
   };
+
+
+  // ==========================================
+  // PLACE ORDER
+  // ==========================================
 
   const placeOrder = async (event) => {
 
@@ -207,6 +319,7 @@ function App() {
           productId: item.id,
           quantity: item.quantity
         }))
+
       };
 
       const result = await createOrder(order);
@@ -218,8 +331,11 @@ function App() {
       localStorage.removeItem("cart");
 
       setCustomerName("");
+
       setPhone("");
+
       setAddress("");
+
       setPaymentMethod("UPI");
 
       setPage("success");
@@ -235,8 +351,17 @@ function App() {
     }
   };
 
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
+
     <div className="app">
+
+
+      {/* HEADER */}
 
       <header className="header">
 
@@ -247,6 +372,7 @@ function App() {
           🛒 My Ecommerce Store
         </div>
 
+
         <nav>
 
           <button
@@ -255,16 +381,20 @@ function App() {
             Products
           </button>
 
+
           <button
             className="cart-button"
             onClick={() => setPage("cart")}
           >
+
             🛒 Cart
 
             {cartCount > 0 && (
+
               <span className="cart-count">
                 {cartCount}
               </span>
+
             )}
 
           </button>
@@ -273,15 +403,26 @@ function App() {
 
       </header>
 
+
       <main>
+
+
+        {/* ====================================
+            PRODUCTS PAGE
+        ==================================== */}
 
         {page === "products" && (
 
           <section>
 
+
+            {/* HERO */}
+
             <div className="hero">
 
-              <h1>My Ecommerce Store</h1>
+              <h1>
+                My Ecommerce Store
+              </h1>
 
               <p>
                 Find the products you love.
@@ -289,89 +430,166 @@ function App() {
 
             </div>
 
+
+            {/* =================================
+                SEARCH B
+            ================================= */}
+            <h1>SEARCH TEST</h1>
+
+            <div className="search-box">
+
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) =>
+                  setSearchTerm(e.target.value)
+                }
+                onKeyDown={(e) => {
+
+                  if (e.key === "Enter") {
+
+                    searchProducts();
+
+                  }
+
+                }}
+              />
+
+
+              <button
+                onClick={searchProducts}
+              >
+                Search
+              </button>
+
+            </div>
+
+
+            {/* LOADING */}
+
             {loading && (
+
               <p className="message">
                 Loading products...
               </p>
+
             )}
 
+
+            {/* ERROR */}
+
             {error && (
+
               <p className="error">
                 {error}
               </p>
+
             )}
+
+
+            {/* PRODUCTS */}
 
             {!loading && !error && (
 
-              <div className="product-grid">
+              products.length === 0 ? (
 
-                {products.map(product => (
+                <p className="message">
+                  No products found.
+                </p>
 
-                  <div
-                    className="product-card"
-                    key={product.id}
-                  >
+              ) : (
 
-                    <div className="product-image">
+                <div className="product-grid">
 
-                      {product.imageUrl ? (
+                  {products.map(product => (
 
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                        />
+                    <div
+                      className="product-card"
+                      key={product.id}
+                    >
 
-                      ) : (
 
-                        <div className="no-image">
-                          No Image
-                        </div>
+                      {/* IMAGE */}
 
-                      )}
+                      <div className="product-image">
 
-                    </div>
+                        {product.imageUrl ? (
 
-                    <div className="product-content">
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                          />
 
-                      <h2>
-                        {product.name}
-                      </h2>
+                        ) : (
 
-                      <p className="description">
-                        {product.description}
-                      </p>
+                          <div className="no-image">
+                            No Image
+                          </div>
 
-                      <div className="product-bottom">
-
-                        <span className="price">
-                          ₹{Number(product.price).toLocaleString("en-IN")}
-                        </span>
-
-                        <span className="stock">
-                          Stock: {product.stock}
-                        </span>
+                        )}
 
                       </div>
 
-                      <button
-                        className="add-button"
-                        disabled={product.stock === 0}
-                        onClick={() =>
-                          addToCart(product)
-                        }
-                      >
-                        {product.stock === 0
-                          ? "Out of Stock"
-                          : "Add to Cart"}
-                      </button>
+
+                      {/* CONTENT */}
+
+                      <div className="product-content">
+
+                        <h2>
+                          {product.name}
+                        </h2>
+
+
+                        <p className="description">
+                          {product.description}
+                        </p>
+
+
+                        <div className="product-bottom">
+
+                          <span className="price">
+
+                            ₹
+                            {Number(
+                              product.price
+                            ).toLocaleString("en-IN")}
+
+                          </span>
+
+
+                          <span className="stock">
+
+                            Stock: {product.stock}
+
+                          </span>
+
+                        </div>
+
+
+                        <button
+                          className="add-button"
+                          disabled={product.stock === 0}
+                          onClick={() =>
+                            addToCart(product)
+                          }
+                        >
+
+                          {product.stock === 0
+                            ? "Out of Stock"
+                            : "Add to Cart"}
+
+                        </button>
+
+                      </div>
 
                     </div>
 
-                  </div>
+                  ))}
 
-                ))}
+                </div>
 
-              </div>
+              )
 
             )}
 
@@ -379,17 +597,28 @@ function App() {
 
         )}
 
+
+        {/* ====================================
+            CART PAGE
+        ==================================== */}
+
         {page === "cart" && (
 
           <section className="page">
 
-            <h1>Your Cart</h1>
+            <h1>
+              Your Cart
+            </h1>
+
 
             {cart.length === 0 ? (
 
               <div className="empty-cart">
 
-                <h2>Your cart is empty 🛒</h2>
+                <h2>
+                  Your cart is empty 🛒
+                </h2>
+
 
                 <button
                   onClick={() =>
@@ -419,15 +648,21 @@ function App() {
                         alt={item.name}
                       />
 
+
                       <div className="cart-info">
 
                         <h2>
                           {item.name}
                         </h2>
 
+
                         <p>
-                          ₹{Number(item.price).toLocaleString("en-IN")}
+                          ₹
+                          {Number(
+                            item.price
+                          ).toLocaleString("en-IN")}
                         </p>
+
 
                         <div className="quantity">
 
@@ -439,9 +674,11 @@ function App() {
                             −
                           </button>
 
+
                           <span>
                             {item.quantity}
                           </span>
+
 
                           <button
                             onClick={() =>
@@ -455,14 +692,19 @@ function App() {
 
                       </div>
 
+
                       <div className="cart-right">
 
                         <strong>
-                          ₹{(
+
+                          ₹
+                          {(
                             Number(item.price) *
                             item.quantity
                           ).toLocaleString("en-IN")}
+
                         </strong>
+
 
                         <button
                           className="remove-button"
@@ -481,21 +723,40 @@ function App() {
 
                 </div>
 
+
                 <div className="cart-summary">
 
-                  <h2>Order Summary</h2>
+                  <h2>
+                    Order Summary
+                  </h2>
+
 
                   <div>
-                    <span>Items</span>
-                    <span>{cartCount}</span>
+
+                    <span>
+                      Items
+                    </span>
+
+                    <span>
+                      {cartCount}
+                    </span>
+
                   </div>
 
+
                   <div className="total">
-                    <span>Total</span>
+
                     <span>
-                      ₹{cartTotal.toLocaleString("en-IN")}
+                      Total
                     </span>
+
+                    <span>
+                      ₹
+                      {cartTotal.toLocaleString("en-IN")}
+                    </span>
+
                   </div>
+
 
                   <button
                     className="checkout-button"
@@ -514,20 +775,32 @@ function App() {
 
         )}
 
+
+        {/* ====================================
+            CHECKOUT PAGE
+        ==================================== */}
+
         {page === "checkout" && (
 
           <section className="page">
 
-            <h1>Checkout</h1>
+            <h1>
+              Checkout
+            </h1>
+
 
             <div className="checkout-layout">
+
 
               <form
                 className="checkout-form"
                 onSubmit={placeOrder}
               >
 
-                <h2>Delivery Details</h2>
+                <h2>
+                  Delivery Details
+                </h2>
+
 
                 <label>
                   Full Name
@@ -542,6 +815,7 @@ function App() {
                   required
                 />
 
+
                 <label>
                   Phone
                 </label>
@@ -554,6 +828,7 @@ function App() {
                   placeholder="Enter phone number"
                   required
                 />
+
 
                 <label>
                   Address
@@ -569,11 +844,14 @@ function App() {
                   required
                 />
 
+
                 <h2>
                   Payment Method
                 </h2>
 
+
                 <div className="payment-options">
+
 
                   <label className="payment-option">
 
@@ -596,6 +874,7 @@ function App() {
 
                   </label>
 
+
                   <label className="payment-option">
 
                     <input
@@ -617,6 +896,7 @@ function App() {
 
                   </label>
 
+
                   <label className="payment-option">
 
                     <input
@@ -637,6 +917,7 @@ function App() {
                     </span>
 
                   </label>
+
 
                   <label className="payment-option">
 
@@ -661,6 +942,7 @@ function App() {
 
                 </div>
 
+
                 <button
                   type="submit"
                   className="place-order-button"
@@ -670,9 +952,13 @@ function App() {
 
               </form>
 
+
               <div className="checkout-summary">
 
-                <h2>Your Order</h2>
+                <h2>
+                  Your Order
+                </h2>
+
 
                 {cart.map(item => (
 
@@ -685,25 +971,37 @@ function App() {
                       {item.name} × {item.quantity}
                     </span>
 
+
                     <strong>
-                      ₹{(
+
+                      ₹
+                      {(
                         Number(item.price) *
                         item.quantity
                       ).toLocaleString("en-IN")}
+
                     </strong>
 
                   </div>
 
                 ))}
 
+
                 <hr />
+
 
                 <div className="checkout-total">
 
-                  <span>Total</span>
+                  <span>
+                    Total
+                  </span>
+
 
                   <strong>
-                    ₹{cartTotal.toLocaleString("en-IN")}
+
+                    ₹
+                    {cartTotal.toLocaleString("en-IN")}
+
                   </strong>
 
                 </div>
@@ -716,71 +1014,95 @@ function App() {
 
         )}
 
-        {page === "success" && orderSuccess && (
 
-          <section className="success-page">
+        {/* ====================================
+            SUCCESS PAGE
+        ==================================== */}
 
-            <div className="success-card">
+        {page === "success" &&
+          orderSuccess && (
 
-              <div className="success-icon">
-                ✓
+            <section className="success-page">
+
+              <div className="success-card">
+
+                <div className="success-icon">
+                  ✓
+                </div>
+
+
+                <h1>
+                  Order Confirmed!
+                </h1>
+
+
+                <p>
+                  Thank you, {orderSuccess.customerName}.
+                </p>
+
+
+                <p>
+                  Your order has been successfully placed.
+                </p>
+
+
+                <div className="order-details">
+
+                  <p>
+                    <strong>
+                      Order ID:
+                    </strong>{" "}
+                    #{orderSuccess.orderId}
+                  </p>
+
+
+                  <p>
+                    <strong>
+                      Payment:
+                    </strong>{" "}
+                    {orderSuccess.paymentMethod}
+                  </p>
+
+
+                  <p>
+                    <strong>
+                      Total:
+                    </strong>{" "}
+                    ₹
+                    {Number(
+                      orderSuccess.totalAmount
+                    ).toLocaleString("en-IN")}
+                  </p>
+
+
+                  <p>
+                    <strong>
+                      Status:
+                    </strong>{" "}
+                    {orderSuccess.status}
+                  </p>
+
+                </div>
+
+
+                <button
+                  onClick={() =>
+                    setPage("products")
+                  }
+                >
+                  Continue Shopping
+                </button>
+
               </div>
 
-              <h1>
-                Order Confirmed!
-              </h1>
+            </section>
 
-              <p>
-                Thank you, {orderSuccess.customerName}.
-              </p>
-
-              <p>
-                Your order has been successfully placed.
-              </p>
-
-              <div className="order-details">
-
-                <p>
-                  <strong>Order ID:</strong>{" "}
-                  #{orderSuccess.orderId}
-                </p>
-
-                <p>
-                  <strong>Payment:</strong>{" "}
-                  {orderSuccess.paymentMethod}
-                </p>
-
-                <p>
-                  <strong>Total:</strong>{" "}
-                  ₹{Number(
-                    orderSuccess.totalAmount
-                  ).toLocaleString("en-IN")}
-                </p>
-
-                <p>
-                  <strong>Status:</strong>{" "}
-                  {orderSuccess.status}
-                </p>
-
-              </div>
-
-              <button
-                onClick={() =>
-                  setPage("products")
-                }
-              >
-                Continue Shopping
-              </button>
-
-            </div>
-
-          </section>
-
-        )}
+          )}
 
       </main>
 
     </div>
+
   );
 }
 
